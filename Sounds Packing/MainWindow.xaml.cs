@@ -31,10 +31,13 @@ namespace Sounds_Packing
         static public bool firstfitdec = false;
         static public bool bestfit = false;
         static public bool folderfilling = false;
-        static public bool priorityqueuee = false;
+        static public bool worstfitpq = false;
+        static public bool worstfitdecpq = false;
+        static public bool multitheading = false;
         static public string infoPath;
 
         static public List<int> secList = new List<int>();
+        static public int[] secListarray;
         List<string> l = new List<string>();
         static string sourcePath;
         static string targetPath;
@@ -64,7 +67,8 @@ namespace Sounds_Packing
                 l.Add(readline);
             }
 
-
+            FS.Close();
+            file.Close();
             for (int i = 1; i < l.Count; i++)
             {
                 for (int j = 0; j < l[i].Length; j++)
@@ -78,6 +82,11 @@ namespace Sounds_Packing
                     }
                 }
 
+            }
+            secListarray = new int[secList.Count];
+            for (int i = 0; i < secList.Count; i++)
+            {
+                secListarray[i] = secList[i];
             }
         }
         public static int folder_counter = 0;
@@ -119,70 +128,86 @@ namespace Sounds_Packing
                 targetPath = fbd.SelectedPath;
                 targetPath += targetPath[2];
             }
+            if (System.IO.Directory.Exists(targetPath))
+            {
+                System.IO.Directory.Delete(targetPath,true);
+            }
+            if (!System.IO.Directory.Exists(targetPath))
+            {
+                System.IO.Directory.CreateDirectory(targetPath);
+            }
         }
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
             maxSec = int.Parse(secBox.Text);
             ReadAudioFileInfo();
-            System.Windows.MessageBox.Show(sourcePath.ToString());
-            System.Windows.MessageBox.Show(targetPath.ToString());
-            // Thread t = new Thread(delegate () { WorstFit(); });
-            // Thread t1 = new Thread(() => WorstFit());
-            // t.Start();
+
             if (worstfit == true)
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+                if (Priority_Queue.IsChecked == true)
+                { 
+                    Thread w = new Thread(delegate () { WorstFitPQ(); });
+                    w.Start();
 
-                Thread w = new Thread(delegate () { WorstFit(); });
-                sw.Stop();
-                System.Windows.MessageBox.Show("Worst Fit takes ", sw.ElapsedMilliseconds.ToString());
+                }
+                else
+                {
+
+                    Thread w = new Thread(delegate () { WorstFit(); });
+                    w.Start();
+
+                }
             }
             else if (firstfitdec == true)
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+                if (multithreading.IsChecked == true)
+                {
+                    multitheading = true;
+                }
+
                 Thread f = new Thread(delegate () { firstFitDec(); });
                 f.Start();
-                sw.Stop();
-                System.Windows.MessageBox.Show("First Fit takes ", sw.ElapsedMilliseconds.ToString());
+
+                firstfitdec = false;
             }
             else if (worstfitdec == true)
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                Thread ww = new Thread(delegate () { WorstFitDec(); });
-                ww.Start();
-                sw.Stop();
-                System.Windows.MessageBox.Show("Worst Fit Dec takes ", sw.ElapsedMilliseconds.ToString());
+                if (Priority_Queue.IsChecked == true)
+                {
+
+                    Thread w = new Thread(delegate () { WorstFitDecPQ(); });
+                    w.Start();
+
+                }
+                else
+                {
+                    Thread w = new Thread(delegate () { WorstFitDec(); });
+                    w.Start();
+                    worstfitdec = false;
+                }
             }
             else if (firstfit == true)
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                Thread ff = new Thread(delegate () { firstFitDec(); });
+
+                Thread ff = new Thread(delegate () { firstFit(); });
                 ff.Start();
-                sw.Stop();
-                System.Windows.MessageBox.Show("First Fit Dec takes ", sw.ElapsedMilliseconds.ToString());
+
+                firstfit = false;
             }
             else if (folderfilling == true)
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+                
                 Thread fff = new Thread(delegate () { folderFilling(); });
                 fff.Start();
-                sw.Stop();
-                System.Windows.MessageBox.Show("Folder Filling takes ", sw.ElapsedMilliseconds.ToString());
+                folderfilling = false;
             }
             else if (bestfit == true)
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
                 Thread b = new Thread(delegate () { BestFit(); });
                 b.Start();
-                sw.Stop();
-                System.Windows.MessageBox.Show("Best Fit takes ", sw.ElapsedMilliseconds.ToString());
+                bestfit = false;
             }
+
         }
         static public List<List<int>> ll = new List<List<int>>();
         static public void metaData(int[] allocation)
@@ -190,7 +215,7 @@ namespace Sounds_Packing
 
 
             //  ll[0].Add(0);
-            // System.Windows.MessageBox.Show(folder_counter.ToString());
+             System.Windows.MessageBox.Show(folder_counter.ToString()+ " Folder");
             for (int i = 1; i <= folder_counter; i++)
             {
                 ll.Add(new List<int>());
@@ -223,6 +248,9 @@ namespace Sounds_Packing
         }
         static void WorstFit()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             List<int> Folders = new List<int>();
             int[] allocation = new int[secList.Count];
             for (int i = 0; i < secList.Count; i++)               // Complexity=O(n) Where n=number of files
@@ -256,10 +284,15 @@ namespace Sounds_Packing
                 }
 
             }//Total Complexity= O(n*m) Where n=number of files*m=number of folders 
+            sw.Stop();
+            System.Windows.MessageBox.Show("Worst Fit takes "+ sw.ElapsedMilliseconds.ToString());
             Allocatingfiles(allocation);
         }
         static void WorstFitPQ()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             int folderindex = 0;
             PriorityQueue<Tuple<int, int>> Folders = new PriorityQueue<Tuple<int, int>>();
             int[] allocation = new int[secList.Count];
@@ -295,12 +328,26 @@ namespace Sounds_Packing
                 }
 
             }
+
+            sw.Stop();
+            System.Windows.MessageBox.Show("Worst Fit PQ takes "+ sw.ElapsedMilliseconds.ToString());
             Allocatingfiles(allocation);
         }
         static void WorstFitDec()
         {
-            secList.Sort();                                  //Sort
-            secList.Reverse();                               //Reverse after sorting to have the file sorded in a decreasing order
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            if (multitheading == true)
+            {
+                mergeSort.MergeSort(secListarray);
+            }
+            else
+            {
+                mergeSort.MergeSortWithout(secListarray);
+            }
+            multitheading = false;
+            //Reverse after sorting to have the file sorded in a decreasing order
             List<int> Folders = new List<int>();             //Complexity = O(1)
             int[] allocation = new int[secList.Count];
             for (int i = 0; i < secList.Count; i++)         // Complexity=O(n) Where n=number of files
@@ -313,7 +360,7 @@ namespace Sounds_Packing
 
                 for (int j = 0; j < Folders.Count; j++)    // Complexity=O(m) Where m=number of folders 
                 {
-                    if (Folders[j] >= secList[i])          //Compare folder size by file size to find empty folder   
+                    if (Folders[j] >= secListarray[i])          //Compare folder size by file size to find empty folder   
                     {
                         if (wstIdx == -1)                //Compare if still not allocated in file
                             wstIdx = j;                   // Let worstindex take the index of the  folder found
@@ -325,22 +372,34 @@ namespace Sounds_Packing
                 if (wstIdx != -1)                   // There is a folder found to allocate in 
                 {
                     allocation[i] = wstIdx;         //Alocate file i to worstindex
-                    Folders[wstIdx] -= secList[i];  //Subtract the file insert from the folder and the result is the size remaining in the folder 
+                    Folders[wstIdx] -= secListarray[i];  //Subtract the file insert from the folder and the result is the size remaining in the folder 
                 }
                 else if (wstIdx == -1)             //There isn't a folder found to allocate in 
                 {
                     Folders.Add(maxSec);           //Create new folder with max size in list
-                    Folders[Folders.Count - 1] -= secList[i];  //Alocate file i to worstindex
+                    Folders[Folders.Count - 1] -= secListarray[i];  //Alocate file i to worstindex
                     allocation[i] = Folders.Count - 1;          //Subtract the file insert from the folder and the result is the size remaining in the folder 
                 }
 
             }//Total Complexity= O(n*m) Where n=number of files*m=number of folders 
+
+            sw.Stop();
+            System.Windows.MessageBox.Show("Worst Fit dec takes "+ sw.ElapsedMilliseconds.ToString());
             Allocatingfiles(allocation);
         }
         static void WorstFitDecPQ()
         {
-            secList.Sort();
-            secList.Reverse();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            if (multitheading == true)
+            {
+                mergeSort.MergeSort(secListarray);
+            }
+            else
+            {
+                mergeSort.MergeSortWithout(secListarray);
+            }
+            multitheading = false;
             int folderindex = 0;
             PriorityQueue<Tuple<int, int>> Folders = new PriorityQueue<Tuple<int, int>>();
             int[] allocation = new int[secList.Count];
@@ -354,12 +413,12 @@ namespace Sounds_Packing
                 if (Folders.Count > 0)              //Check if there is elemenets in the queue or not
                 {
                     Tuple<int, int> tempp = Folders.Peek(); //Make pair of size of folder and index and intializing by top element in priority queue
-                    if (tempp.Item1 > secList[i])            //Compare folder size by file size to find empty folder   
+                    if (tempp.Item1 > secListarray[i])            //Compare folder size by file size to find empty folder   
                     {
                         var top = Folders.list[0];         // Initalize top by first intem in the folder
                         Folders.Dequeue();                 //Remove the top item in the queue
                         int rem = top.Item1, ind = top.Item2;// Initalize the rem by the top file size and  ind by the top index 
-                        rem -= secList[i];                     //Subtract the file insert from rem and the result is the size remaining in the folder 
+                        rem -= secListarray[i];                     //Subtract the file insert from rem and the result is the size remaining in the folder 
                         Tuple<int, int> after = new Tuple<int, int>(rem, ind); //Initalize after as pair of folder and index by pair of rem and ind
                         Folders.Enqueue(after);                //Insert after in queue
                         allocation[i] = ind;                   //Alocate file i by ind
@@ -369,22 +428,25 @@ namespace Sounds_Packing
 
                 if (allocation[i] == -1)            //There isn't a folder found to allocate in 
                 {
-                    int rem = maxSec - secList[i], ind = folderindex++;
+                    int rem = maxSec - secListarray[i], ind = folderindex++;
                     Tuple<int, int> tmp = new Tuple<int, int>(rem, ind);  //Initalize temp as pair of folder and index by pair of rem and ind
                     Folders.Enqueue(tmp);  //Insert temp in queue
                     allocation[i] = ind;   //Alocate file i by ind
                 }
 
             }
+            sw.Stop();
+            System.Windows.MessageBox.Show("Worst Fit dec PQ takes "+ sw.ElapsedMilliseconds.ToString());
             Allocatingfiles(allocation);
             //Total Complexity=O(n)  Where n=number of files
         }
-        static void firstFitDec()
+        static void firstFit()
         {
-            secList.Sort();
-            secList.Reverse();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             List<int> Folders = new List<int>();      //folder list, complexity: O(1) 
-            int[] allocation = new int[secList.Count]; //array with the number of files, complexity: O(1) 
+            int[] allocation = new int[secListarray.Length]; //array with the number of files, complexity: O(1) 
             for (int i = 0; i < secList.Count; i++)     //complexity: O(n), (n -> secList.Count)
             {
                 allocation[i] = -1;                 //intialize all files by -1 as the file is still not allocated
@@ -425,11 +487,79 @@ namespace Sounds_Packing
 
             }
 
+            sw.Stop();
+            System.Windows.MessageBox.Show("First Fit takes "+sw.ElapsedMilliseconds.ToString());
             //Total Complexity of First-Fit : O(N*M)
+            Allocatingfiles(allocation);
+        }
+        static void firstFitDec()
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            if (multitheading == true)
+            {
+                mergeSort.MergeSort(secListarray);
+            }
+            else
+            {
+                mergeSort.MergeSortWithout(secListarray);
+            }
+            multitheading = false; mergeSort.MergeSort(secListarray);
+
+            List<int> Folders = new List<int>();      //folder list, complexity: O(1) 
+            int[] allocation = new int[secListarray.Length]; //array with the number of files, complexity: O(1) 
+            for (int i = 0; i < secList.Count; i++)     //complexity: O(n), (n -> secList.Count)
+            {
+                allocation[i] = -1;                 //intialize all files by -1 as the file is still not allocated
+            }
+            for (int i = 0; i < secList.Count; i++)  //complexity: O(n), (n -> secList.Count)
+            {
+                int fstIdx = -1;                 // Complexity: O(1)   
+                                                 // Initialize the variable of fisrt index as not found
+
+                for (int j = 0; j < Folders.Count; j++)//complexity: O(m), (m -> Folders.Count)
+                {
+                    if (Folders[j] >= secListarray[i]) // Complexity: O(1)
+                    {                             //Compare between Folders and Files to find the fisrt suitable Folder
+
+
+                        fstIdx = j;               // Complexity:O(1)
+                                                  //put the current folder in the fisrt fit index
+                        break;
+                    }
+
+                }
+                if (fstIdx != -1)                 // Compexity: O(1)
+                                                  // If there is a suitable place
+                {
+                    allocation[i] = fstIdx;                  //Complexity: O(1)
+                                                             // assign folder i to be put in fstIdx folder
+
+                    Folders[fstIdx] -= secList[i];           // Complexity: O(1)
+                                                             //Reduce memory of the files 
+                }
+                else if (fstIdx == -1)             // Complexity :O(1)
+                                                   //If there is not a place in folders
+                {
+                    Folders.Add(maxSec);           //Create new folder to add the file
+                    Folders[Folders.Count - 1] -= secList[i];
+                    allocation[i] = Folders.Count - 1;
+                }
+
+            }
+
+            //Total Complexity of First-Fit : O(N*M)
+
+            sw.Stop();
+            System.Windows.MessageBox.Show("first Fit dec takes " + sw.ElapsedMilliseconds.ToString());
             Allocatingfiles(allocation);
         }
         static void BestFit()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             int[] allocation = new int[secList.Count];// Complexity is O(1), Array with number of files
             List<int> Folders = new List<int>();       //Complexity is O(1), Folder list
 
@@ -476,11 +606,16 @@ namespace Sounds_Packing
                     allocation[i] = Folders.Count - 1;
                 }
 
-            }                                           // Total Complexity of the Best-Fit = O(N*M)
+            }
+            // Total Complexity of the Best-Fit = O(N*M)
+
+            sw.Stop();
+            System.Windows.MessageBox.Show("Best Fit takes "+ sw.ElapsedMilliseconds.ToString());
             Allocatingfiles(allocation);
         }
         static List<int> FolderFilling(ref List<Tuple<int, int>> v, ref List<Tuple<int, int>> w, int n, int W, int[,] V, bool[,] keep)
         {
+
             List<int> l = new List<int>();
 
             for (int a = 0; a <= W; a++)  ///////////////////////////////////////
@@ -552,6 +687,9 @@ namespace Sounds_Packing
                 v.Add(new Tuple<int, int>(secList[i], i + 1));
             }
             int countt = 1;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             while (v.Count() > 1)
             {
                 Console.WriteLine("file " + countt.ToString() + ' ');
@@ -573,6 +711,9 @@ namespace Sounds_Packing
                     System.IO.File.Copy(sourceFile, destFile, true);
 
                 }
+
+                sw.Stop();
+                System.Windows.MessageBox.Show("folderfilling takes ", sw.ElapsedMilliseconds.ToString());
                 FileStream FS = new FileStream(targetPath + @"\F" + countt + 1.ToString() + ".txt", FileMode.Append);
                 StreamWriter file = new StreamWriter(FS);
                 file.WriteLine(folder_filling_Allocation.Count().ToString());
@@ -595,48 +736,37 @@ namespace Sounds_Packing
                 FS.Close();
             }
         }
-
         private void button5_Click(object sender, RoutedEventArgs e)
         {
             worstfitdec = true;
         }
-
         private void secBox_TextChanged(object sender, TextChangedEventArgs e)
         {
 
         }
-
         private void button4_Click(object sender, RoutedEventArgs e)
         {
             firstfit = true;
         }
-
         private void button_Click(object sender, RoutedEventArgs e)
         {
             bestfit = true;
         }
-
         private void button2_Click(object sender, RoutedEventArgs e)
         {
             worstfit = true;
         }
-
         private void button3_Click(object sender, RoutedEventArgs e)
         {
             firstfitdec = true;
         }
-
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             folderfilling = true;
         }
-
         private void Priority_Queue_Checked(object sender, RoutedEventArgs e)
         {
-            if (Priority_Queue.IsChecked == true)
-            {
-                priorityqueuee = true;
-            }
+            
         }
     }
 }

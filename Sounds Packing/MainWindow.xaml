@@ -27,7 +27,7 @@
         </Button>
         <Button x:Name="button4" Content="First Fit" HorizontalAlignment="Left" VerticalAlignment="Top" Width="152" Margin="418,195,0,0" FontFamily="Gabriola" FontSize="28" FontWeight="Bold" Background="#FF1A1818" BorderBrush="#FF145EF1" Height="58" Click="button4_Click"/>
         <Button x:Name="button5" Content="Worst Fit Dec." HorizontalAlignment="Left" VerticalAlignment="Top" Width="180" Margin="668,396,0,0" FontSize="26" FontFamily="Gabriola" FontWeight="Bold" Background="#FF1A1818" BorderBrush="#FF145EF1" Height="60" Click="button5_Click"/>
-        <CheckBox x:Name="checkBox" Content="Multi-threading" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="645,604,0,0" FontFamily="Gabriola" FontSize="30" FontWeight="Bold"/>
+        <CheckBox x:Name="multithreading" Content="Multi-threading" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="645,604,0,0" FontFamily="Gabriola" FontSize="30" FontWeight="Bold"/>
         <CheckBox x:Name="Priority_Queue" Content="Priority Queue" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="450,603,0,0" FontSize="30" FontFamily="Gabriola" FontWeight="Bold" Width="188" Checked="Priority_Queue_Checked"/>
         <Button x:Name="btnStart" Click="btnStart_Click" Content="Start" Background="#FF1B4BAB" Height="Auto" Margin="99,579,570,64" BorderBrush="Black" FontFamily="Gabriola" FontSize="36" FontWeight="Bold"/>
         <Button x:Name="btnOpendirsource" Click="btnOpendirsource_Click" Content="Source" Background="#FF1B4BAB" Height="Auto" Margin="97,330,572,316" BorderBrush="Black" FontSize="36" FontFamily="Gabriola" FontWeight="Bold"/>
